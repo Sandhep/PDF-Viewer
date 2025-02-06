@@ -45,6 +45,8 @@ Below is the sample JSON response used to generate the invoice:
   "rates": [172]
 }
 
+```
+
 ## Available Scripts
 
 In the project directory, you can run:
