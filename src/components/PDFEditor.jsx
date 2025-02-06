@@ -25,7 +25,7 @@ const jsonString = `{
             "country": "IN"
         }
     },
-    "quantities": [801.0, 500.0],  
+    "quantities": [801.0],  
     "hsn_details": [
         {
             "hsn_code": 7801,
@@ -33,16 +33,9 @@ const jsonString = `{
             "cgst": "9",
             "sgst": "9",
             "unit": "Kgs"
-        },
-        {
-            "hsn_code": 7802,
-            "product_info": "REFINED LEAD",
-            "cgst": "5",
-            "sgst": "5",
-            "unit": "Kgs"
         }
     ],
-    "rates": [172, 200]
+    "rates": [172]
 }`;
 
 const sampleInvoice =  JSON.parse(jsonString);
@@ -51,39 +44,31 @@ let overallTotalTax = 0;
 let overallTotalTaxableAmount = 0;
 let overallTotalAmount = 0;
 
-// Iterate over each item to calculate tax and amount
 sampleInvoice.hsn_details.forEach((item, index) => {
-    const quantity = sampleInvoice.quantities[index]; // Get quantity for this item
-    const unitPrice = sampleInvoice.rates[index]; // Get unit price
-    const cgstRate = parseFloat(item.cgst); // Convert CGST to number
-    const sgstRate = parseFloat(item.sgst); // Convert SGST to number
+    const quantity = sampleInvoice.quantities[index]; 
+    const unitPrice = sampleInvoice.rates[index]; 
+    const cgstRate = parseFloat(item.cgst); 
+    const sgstRate = parseFloat(item.sgst); 
 
-    // Calculate total tax rate
     const taxRate = cgstRate + sgstRate;
 
     const taxableAmount = unitPrice * quantity;
 
-    // Calculate tax per unit
     const taxPerUnit = (unitPrice * taxRate) / 100;
 
-    // Calculate total tax for this item
     const totalTax = taxPerUnit * quantity;
-
-    // Calculate total amount for this item (including tax)
+    
     const totalAmount = taxableAmount + totalTax;
 
-    // Store calculated values in the hsn_details object
     item.taxableAmount = taxableAmount.toFixed(2);
     item.totalTax = totalTax.toFixed(2);
     item.totalAmount = totalAmount.toFixed(2);
 
-    // Accumulate overall totals
     overallTotalTaxableAmount += taxableAmount;
     overallTotalTax += totalTax;
     overallTotalAmount += totalAmount;
 });
 
-// Store overall totals in the invoice object
 sampleInvoice.totalTaxableAmount = overallTotalTaxableAmount.toFixed(2);
 sampleInvoice.totalTax = overallTotalTax.toFixed(2);
 sampleInvoice.totalAmount = overallTotalAmount.toFixed(2);
@@ -94,7 +79,6 @@ const convertAmountToWords = (amount) => {
 
 sampleInvoice.totalAmountInWords = convertAmountToWords(Math.floor(overallTotalAmount));
 
-// Styles
 const styles = StyleSheet.create({
   page: {
     flexDirection: "column",
@@ -112,47 +96,71 @@ const containerStyle = {
   display: "flex",
   width: "100vw",
   height: "100vh",
+  backgroundColor: "#eaeaea",
+  fontFamily: "'Arial', sans-serif",
 };
 
 const paneStyle = {
   flex: 1,
-  padding: "10px",
+  padding: "15px",
+  border: "1px solid #ccc",
+  borderRadius: "4px",
+  backgroundColor: "#ffffff",
+  fontFamily: "'Arial', sans-serif",
 };
 
 const textareaStyle = {
   width: "100%",
-  height: "200px",
+  height: "300px",
   padding: "10px",
   fontSize: "16px",
-  border: "1px solid #ccc",
-  borderRadius: "5px",
+  border: "1px solid #aaa",
+  borderRadius: "4px",
+  fontFamily: "'Arial', sans-serif",
+  resize: "none",
 };
 
 const buttonStyle = {
   marginTop: "10px",
-  padding: "10px",
-  backgroundColor: "#007bff",
+  marginRight: "10px",
+  padding: "10px 15px",
+  backgroundColor: "#28a745",
   color: "#fff",
   border: "none",
+  borderRadius: "4px",
   cursor: "pointer",
+  fontFamily: "'Arial', sans-serif",
 };
 
-// Main Component
-const PDFEditor = () => {
-  const [text, setText] = useState("Enter text here...");
 
-  // Generate PDF using usePDF hook
+const PDFEditor = () => {
+  const [text, setText] = useState(JSON.stringify(sampleInvoice, null, 2));
+  const [isEditing, setIsEditing] = useState(false);
+  const [error, setError] = useState("");
+
+ 
   const [instance, updateInstance] = usePDF({ document: <InvoiceDocument invoice={sampleInvoice}/> });
 
-  // Update PDF when text changes
-  useEffect(() => {
-    updateInstance(<InvoiceDocument invoice={sampleInvoice}/>);
-  }, [text, updateInstance]);
+  const handleEditClick = () => {
+    setIsEditing(true);
+  };
+
+  const handleSave = () => {
+    try {
+      const updatedInvoice = JSON.parse(text);
+      Object.assign(sampleInvoice, updatedInvoice);
+      updateInstance(<InvoiceDocument invoice={sampleInvoice}/>);
+      setIsEditing(false);
+      setError("");
+    } catch (error) {
+      setError("Invalid JSON format. Please check your input.");
+    }
+  };
 
   return (
     <div style={containerStyle}>
       {/* Left Pane - PDF Preview */}
-      <div style={{ ...paneStyle, borderRight: "2px solid #ddd" }}>
+      <div style={{ ...paneStyle, borderRight: "2px solid #ddd"}}>
         <h3>PDF Preview</h3>
         {instance.url ? (
           <iframe title="pdf-viewer" src={instance.url} width="100%" height="90%" />
@@ -163,18 +171,26 @@ const PDFEditor = () => {
 
       {/* Right Pane - Editor */}
       <div style={paneStyle}>
-        <h3>Edit Document</h3>
-        <textarea
-          style={textareaStyle}
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-        />
-
-        {/* PDF Download Button */}
+        <h3>Edit Bill Document</h3>
         {instance.url && (
           <a href={instance.url} download="document.pdf">
             <button style={buttonStyle}>Download PDF</button>
           </a>
+        )}
+        <button style={buttonStyle} onClick={handleEditClick}>Edit</button>
+
+        {isEditing && (
+          <div style={{ marginTop: "10px" }}>
+            <textarea
+              style={textareaStyle}
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Enter valid JSON here..."
+            />
+            {error && <p style={{ color: 'red' }}>{error}</p>}
+            <button style={buttonStyle} onClick={handleSave}>Save</button>
+            <button style={buttonStyle} onClick={() => setIsEditing(false)}>Cancel</button>
+          </div>
         )}
       </div>
     </div>
