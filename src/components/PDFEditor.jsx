@@ -1,5 +1,36 @@
 import React, { useState, useEffect } from "react";
 import { Page, Text, View, Document, StyleSheet, usePDF } from "@react-pdf/renderer";
+import InvoiceDocument from "./InvoiceDocument";
+
+const sampleInvoice = {
+  customerName: "Sample Bill Company",
+  customerAddress: "S-11, Sample City, State-001100",
+  customerGSTIN: "00DUMYGSTBILL00",
+  placeOfSupply: "State, IN - 001100",
+  invoiceNo: "INV-001",
+  invoiceDate: "2025-02-06",
+  chalanNo: "CH-123",
+  chalanDate: "2025-02-05",
+  poNo: "PO-456",
+  deliveryDate: "2025-02-07",
+  reverseCharge: "N.A.",
+  items: [
+    {
+      description: "UNWROUGHT LEAD",
+      hsnCode: "7801",
+      igst: 9,
+      qty: "1899.9 Kgs",
+      unitPrice: "184",
+      tax: "62924.69",
+      amount: "349581.60",
+    },
+  ],
+  taxableAmount: "349581.60",
+  totalTax: "62924.70",
+  totalAmount: "412506.30",
+  totalInWords: "Four Lakh Twelve Thousand Five Hundred Six Rupees and Twenty Nine Paise",
+};
+
 
 // Styles
 const styles = StyleSheet.create({
@@ -61,11 +92,11 @@ const PDFEditor = () => {
   const [text, setText] = useState("Enter text here...");
 
   // Generate PDF using usePDF hook
-  const [instance, updateInstance] = usePDF({ document: <MyDocument content={text} /> });
+  const [instance, updateInstance] = usePDF({ document: <InvoiceDocument invoice={sampleInvoice}/> });
 
   // Update PDF when text changes
   useEffect(() => {
-    updateInstance(<MyDocument content={text} />);
+    updateInstance(<InvoiceDocument invoice={sampleInvoice}/>);
   }, [text, updateInstance]);
 
   return (
