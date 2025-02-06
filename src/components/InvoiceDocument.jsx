@@ -1,17 +1,48 @@
 import { Document, Page, View, Text, StyleSheet } from "@react-pdf/renderer";
-import { Table, TD, TH, TR } from "@ag-media/react-pdf-table";
+import { Table, TD, TR } from "@ag-media/react-pdf-table";
 
 const styles = StyleSheet.create({
   page: { 
     padding: 30,
     fontSize: 10 
   },
-  invoiceTitle: {
-    fontSize: 12,
+  invoiceType: {
+    fontSize: 11,
     fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 15,
-    textTransform: "uppercase"
+    textTransform: "uppercase",
+    marginBottom:'5px',
+    flexDirection:"row",
+    justifyContent:'space-between',
+    width:'100%'
+  },
+  invoiceAddress: {
+    fontSize: 11,
+    fontWeight: "bold",
+    marginBottom:'8px',
+    flexDirection:"row",
+    width:'100%'
+  },
+  invoiceTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom:'8px',
+    flexDirection:"row",
+    width:'100%'
+  },
+  invoiceData:{
+    flexDirection:'row',
+    justifyContent:'space-between',
+    width:'130%'
+  },
+  invoiceDataBox:{
+    marginTop:'5px'
+  },
+  companyDataBox:{
+    marginBottom:'5px'
+  },
+  companydetails:{
+    marginBottom:'10px',
+    marginTop:'5px'
   },
   table: {
     marginBottom: 20,
@@ -23,11 +54,6 @@ const styles = StyleSheet.create({
   companyHeader: {
     borderBottom: 1,
     borderRight: 1,
-  },
-  companyName: {
-    fontSize: 12,
-    fontWeight: "bold",
-    marginBottom: 2
   },
   invoiceDetails: {
     textAlign: "left",
@@ -45,25 +71,9 @@ const styles = StyleSheet.create({
   tableCell: {
     fontSize: 10,
     padding: 6,
-    textAlign: "right",
-    borderBottom: 1,
-  },
-  tableCellLeft: {
     textAlign: "left",
-  },
-  totalSection: {
-    marginTop: 15,
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  totalLeft: {
-    width: "60%",
-  },
-  totalRight: {
-    width: "40%",
-  },
-  totalRow: {
-    marginBottom: 3,
+    alignItems:'baseline',
+    borderBottom: 1,
   },
   footerleft: {
     padding: 4,
@@ -74,19 +84,23 @@ const styles = StyleSheet.create({
   footerRight:{
     padding: 4,
     fontSize: 10,
-    textAlign: "left",
     borderBottom: 1,
   },
-  termsHeader: {
-    fontWeight: "bold",
-    marginBottom: 5,
+  paymentdetails:{
+    flexDirection:'row',
+    justifyContent:'space-between',
+    width:'100%'
   },
-  termItem: {
-    marginBottom: 2,
+  footerRightend:{
+    flexDirection:'row',
+    justifyContent:'flex-end',
+    width:'100%'
+  },
+  terms:{
+   marginBottom:"20px"
   },
   signature: {
-    marginTop: 30,
-    textAlign: "right",
+    marginBottom:"30px"
   },
   tabledata:{
     fontSize: 10, 
@@ -95,6 +109,8 @@ const styles = StyleSheet.create({
     flexWrap: "wrap" 
   },
   company: {
+    padding: 4,
+    fontSize: 10,
     textAlign: "center",
     justifyContent:"center",
   },
@@ -104,50 +120,71 @@ const InvoiceDocument = ({ invoice }) => {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <Text style={styles.invoiceTitle}>Tax Invoice - Original for Recipient</Text>
+        
+        <View style={styles.invoiceTitle}>
+          <Text>{invoice.party.trade_name.replace(/^M\/S\s+/i, "")}</Text>
+        </View>
+
+        <View style={styles.invoiceAddress}>
+          <Text>{invoice.party.principal_address.address1}, </Text>
+          <Text>{invoice.party.principal_address.address2}, </Text>
+          <Text>{invoice.party.principal_address.city}, </Text>
+          <Text>{invoice.party.principal_address.state} - </Text>
+          <Text>{invoice.party.principal_address.pincode}</Text>
+        </View>
+
+        <View style={styles.invoiceType}>
+          <Text>GSTIN : {invoice.party.gstin}</Text>
+          <Text>TAX INVOICE</Text>
+          <Text>ORIGINAL FOR RECIPENT</Text>
+        </View>
 
         <Table style={styles.table}>
           {/* Company and Customer Details Header */}
           <TR>
             <TD style={[styles.headerCell, styles.companyHeader]} colSpan={4}>
-            <View >
-                <Text>
+            <View style={styles.companyDataBox} >
+                <Text style={styles.companydetails}>
                 Customer Detail
                 </Text>
                 <Text>
-                M/S Sample Bill Company
+                M/S {invoice.party.legal_name}
                 </Text>
                 <Text>
-                Address S-11
+                Address : {invoice.party.principal_address.address1}, {invoice.party.principal_address.address2}
                 </Text>
                 <Text>
-                GSTIN 00DUMYGSTBILL00
+                GSTIN : {invoice.party.gstin}
                 </Text>
                 <Text>
-                Place of Supply State , IN - 001100
+                Place of Supply : {invoice.party.principal_address.country} - {invoice.party.principal_address.pincode}
                 </Text>
             </View>
             </TD>
             <TD style={[styles.headerCell, styles.invoiceDetails]} colSpan={5}>
-            <View >
-                <Text>
-                Invoice No.               Invoice Date:
-                </Text>
-                <Text>
-                Chalan  No.                Chalan Date:
-                </Text>
-                <Text>
-                P.O.No :
-                </Text>
-                <Text>
-                Delivery Date :            Reverse Charge:
-                </Text>
-                <Text>
-                L.R.No. :                  Due Date:
-                </Text>
-                <Text>
-                E-Way No. :
-                </Text>
+            <View style={styles.invoiceDataBox}>
+                <View style={styles.invoiceData}>
+                    <Text>Invoice No. :</Text>
+                    <Text>Invoice Date :</Text>
+                </View>
+                <View style={styles.invoiceData}>
+                    <Text>Chalan  No. :</Text>
+                    <Text>Chalan Date :</Text>
+                </View>
+                <View style={styles.invoiceData}>
+                    <Text>P.O.No. :</Text>
+                </View>
+                <View style={styles.invoiceData}>
+                    <Text>Delivery Date :</Text>
+                    <Text>Reverse Charge :</Text>
+                </View>
+                <View style={styles.invoiceData}>
+                    <Text>L.R.No. :</Text>
+                    <Text>Due Date :</Text>
+                </View>
+                <View style={styles.invoiceData}>
+                    <Text>E-Way No. :</Text>
+                </View>
             </View>
             </TD>
           </TR>
@@ -156,71 +193,77 @@ const InvoiceDocument = ({ invoice }) => {
           <TR>
             <TD  weighting={0.07} style={styles.tableHeader}>S.No</TD>
             <TD  weighting={0.4} style={styles.tableHeader}>Item Description</TD>
-            <TD  weighting={0.2} style={styles.tableHeader}>
-                <View>
-                <Text>
-                 HSN/SAC Code
-                </Text>
-                </View>
-            </TD>
-            <TD  weighting={0.07} style={styles.tableHeader}>IGST</TD>
-            <TD  weighting={0.08} style={styles.tableHeader}>Qty</TD>
+            <TD  weighting={0.2} style={styles.tableHeader}>HSN/SAC Code</TD>
+            <TD  weighting={0.08} style={styles.tableHeader}>IGST</TD>
+            <TD  weighting={0.1} style={styles.tableHeader}>Qty</TD>
             <TD  weighting={0.06} style={styles.tableHeader}>Unit</TD>
-            <TD  weighting={0.08} style={styles.tableHeader}>Price</TD>
-            <TD  weighting={0.2} style={styles.tableHeader}>Tax</TD>
+            <TD  weighting={0.1} style={styles.tableHeader}>Price</TD>
+            <TD  weighting={0.2} style={styles.tableHeader}>Payable Tax</TD>
             <TD  weighting={0.2} style={styles.tableHeader}>Amount</TD>
           </TR>
 
           {/* Table Items */}
-            {invoice.items.map((item, index) => (
-            <TR key={index}>
-                <TD weighting={0.07} style={styles.tableCell}>{index + 1}</TD> {/* Small width for S.No */}
-                <TD weighting={0.4} style={[styles.tableCell, styles.tableCellLeft]}>{item.description}</TD> {/* Wider column */}
-                <TD weighting={0.2} style={styles.tableCell}>{item.hsnCode}</TD>
-                <TD weighting={0.07} style={styles.tableCell}>{item.igst}%</TD>
-                <TD weighting={0.08} style={styles.tableCell}>{item.quantity}</TD>
+            {invoice.hsn_details.map((item, index) => (
+            <TR key={index} style={{height:'25%'}}>
+                <TD weighting={0.07} style={styles.tableCell}>{index + 1}</TD> 
+                <TD weighting={0.4} style={styles.tableCell}>{item.product_info}</TD> 
+                <TD weighting={0.2} style={styles.tableCell}>{item.hsn_code}</TD>
+                <TD weighting={0.08} style={styles.tableCell}>{item.cgst}%</TD>
+                <TD weighting={0.1} style={styles.tableCell}>{invoice.quantities[index]}</TD>
                 <TD weighting={0.06} style={styles.tableCell}>{item.unit}</TD>
-                <TD weighting={0.08} style={styles.tableCell}>{item.unitPrice}</TD>
-                <TD weighting={0.2} style={styles.tableCell}>{item.tax}</TD>
-                <TD weighting={0.2} style={styles.tableCell}>{item.amount}</TD>
+                <TD weighting={0.1} style={styles.tableCell}>{invoice.rates[index]}</TD>
+                <TD weighting={0.2} style={styles.tableCell}>{item.totalTax}</TD>
+                <TD weighting={0.2} style={styles.tableCell}>{item.taxableAmount}</TD>
             </TR>
             ))}
 
             <TR>
-            <TD style={styles.footerleft} colSpan={4}>
-             TOTAL IN WORDS
-            </TD>
+            <TD style={styles.footerleft} colSpan={4}>TOTAL IN WORDS</TD>
             <TD style={styles.footerRight} colSpan={5}>
-            Taxable Amount: {invoice.taxableAmount}
+              <View style={styles.paymentdetails}>
+                <Text>Taxable Amount </Text>
+                <Text>{invoice.totalTaxableAmount}</Text>
+              </View>
             </TD>
            </TR>
            <TR>
             <TD style={styles.footerleft} colSpan={4}>
-            {invoice.totalInWords}
+            {invoice.totalAmountInWords}
             </TD>
             <TD style={styles.footerRight} colSpan={5}>
-            Total Tax: {invoice.totalTax}
-            </TD>
-           </TR>
-           <TR>
-            <TD style={styles.footerleft} colSpan={4}>
-            </TD>
-            <TD style={styles.footerRight} colSpan={5}>
-            Total Amount After Tax: {invoice.totalAmount}
-            </TD>
-           </TR>
-           <TR>
-            <TD style={styles.footerleft} colSpan={4}>
-            </TD>
-            <TD style={styles.footerRight} colSpan={5}>
-            E. & O.E.
+            <View style={styles.paymentdetails}>
+                <Text>Total Tax </Text>
+                <Text>{invoice.totalTax}</Text>
+            </View>
             </TD>
            </TR>
            <TR>
             <TD style={styles.footerleft} colSpan={4}>
             </TD>
             <TD style={styles.footerRight} colSpan={5}>
-            GST PAYABLE ON REVERSE CHARGE: N.A.
+            <View style={styles.paymentdetails}>
+                <Text>Total Amount After Tax  </Text>
+                <Text> {invoice.totalAmount}</Text>
+            </View>
+            </TD>
+           </TR>
+           <TR>
+            <TD style={styles.footerleft} colSpan={4}>
+            </TD>
+            <TD style={styles.footerRight} colSpan={5}>
+            <View style={styles.footerRightend}>
+                <Text>E. & O.E.</Text>
+            </View>
+            </TD>
+           </TR>
+           <TR>
+            <TD style={styles.footerleft} colSpan={4}>
+            </TD>
+            <TD style={styles.footerRight} colSpan={5}>
+            <View style={styles.paymentdetails}>
+                <Text>GST PAYABLE ON REVERSE CHARGE</Text>
+                <Text> N.A.</Text>
+            </View>
             </TD>
            </TR>
            <TR>
@@ -235,14 +278,14 @@ const InvoiceDocument = ({ invoice }) => {
             </View>
             </TD>
             <TD style={styles.footerRight} colSpan={5}>
-            <Text style={{marginBottom:"30px"}}>
-                Receiver Signature:
+            <Text style={styles.signature}>
+                Receiver Signature :
             </Text>
             </TD>
            </TR>
            <TR>
             <TD style={styles.footerleft} colSpan={4}>
-            <View style={{marginBottom:"20px"}}>
+            <View style={styles.terms}>
                 <Text>
                 1. Goods once sold will not be taken back.
                 </Text>
@@ -254,9 +297,9 @@ const InvoiceDocument = ({ invoice }) => {
                 </Text>
             </View>
             </TD>
-            <TD style={[styles.headerCell,styles.company]} colSpan={5}>
+            <TD style={styles.company} colSpan={5}>
                 <View>
-                    <Text>for Sample Bill Company</Text>
+                    <Text>for {invoice.party.trade_name.replace(/^M\/S\s+/i, "")}</Text>
                 </View>
             </TD>
            </TR>
