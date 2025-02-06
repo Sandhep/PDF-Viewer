@@ -1,36 +1,98 @@
 import React, { useState, useEffect } from "react";
-import { Page, Text, View, Document, StyleSheet, usePDF } from "@react-pdf/renderer";
+import {StyleSheet, usePDF } from "@react-pdf/renderer";
 import InvoiceDocument from "./InvoiceDocument";
+import numberToWords from 'number-to-words';
 
-const sampleInvoice = {
-  customerName: "Sample Bill Company",
-  customerAddress: "S-11, Sample City, State-001100",
-  customerGSTIN: "00DUMYGSTBILL00",
-  placeOfSupply: "State, IN - 001100",
-  invoiceNo: "INV-001",
-  invoiceDate: "2025-02-06",
-  chalanNo: "CH-123",
-  chalanDate: "2025-02-05",
-  poNo: "PO-456",
-  deliveryDate: "2025-02-07",
-  reverseCharge: "N.A.",
-  items: [
-    {
-      description: "UNWROUGHT LEAD",
-      hsnCode: "7801",
-      igst: 9,
-      qty: "1899.9 Kgs",
-      unitPrice: "184",
-      tax: "62924.69",
-      amount: "349581.60",
+const jsonString = `{
+    "party": {
+        "gstin": "09AMYPK1749C1ZO",
+        "legal_name": "NEERAJ  KUMAR",
+        "trade_name": "M/S NEERAJ INDUSTRIES",
+        "principal_address": {
+            "address1": "PRATAP GANJ",
+            "address2": "Kanpur Nagar",
+            "pincode": "208022",
+            "city": "Kanpur",
+            "state": "UP",
+            "country": "IN"
+        },
+        "shipping_address": {
+            "address1": "E 83/A, Panki Site 5",
+            "address2": "Kanpur Nagar",
+            "pincode": "208022",
+            "city": "Kanpur",
+            "state": "UP",
+            "country": "IN"
+        }
     },
-  ],
-  taxableAmount: "349581.60",
-  totalTax: "62924.70",
-  totalAmount: "412506.30",
-  totalInWords: "Four Lakh Twelve Thousand Five Hundred Six Rupees and Twenty Nine Paise",
+    "quantities": [801.0, 500.0],  
+    "hsn_details": [
+        {
+            "hsn_code": 7801,
+            "product_info": "UNWROUGHT LEAD",
+            "cgst": "9",
+            "sgst": "9",
+            "unit": "Kgs"
+        },
+        {
+            "hsn_code": 7802,
+            "product_info": "REFINED LEAD",
+            "cgst": "5",
+            "sgst": "5",
+            "unit": "Kgs"
+        }
+    ],
+    "rates": [172, 200]
+}`;
+
+const sampleInvoice =  JSON.parse(jsonString);
+
+let overallTotalTax = 0;
+let overallTotalTaxableAmount = 0;
+let overallTotalAmount = 0;
+
+// Iterate over each item to calculate tax and amount
+sampleInvoice.hsn_details.forEach((item, index) => {
+    const quantity = sampleInvoice.quantities[index]; // Get quantity for this item
+    const unitPrice = sampleInvoice.rates[index]; // Get unit price
+    const cgstRate = parseFloat(item.cgst); // Convert CGST to number
+    const sgstRate = parseFloat(item.sgst); // Convert SGST to number
+
+    // Calculate total tax rate
+    const taxRate = cgstRate + sgstRate;
+
+    const taxableAmount = unitPrice * quantity;
+
+    // Calculate tax per unit
+    const taxPerUnit = (unitPrice * taxRate) / 100;
+
+    // Calculate total tax for this item
+    const totalTax = taxPerUnit * quantity;
+
+    // Calculate total amount for this item (including tax)
+    const totalAmount = taxableAmount + totalTax;
+
+    // Store calculated values in the hsn_details object
+    item.taxableAmount = taxableAmount.toFixed(2);
+    item.totalTax = totalTax.toFixed(2);
+    item.totalAmount = totalAmount.toFixed(2);
+
+    // Accumulate overall totals
+    overallTotalTaxableAmount += taxableAmount;
+    overallTotalTax += totalTax;
+    overallTotalAmount += totalAmount;
+});
+
+// Store overall totals in the invoice object
+sampleInvoice.totalTaxableAmount = overallTotalTaxableAmount.toFixed(2);
+sampleInvoice.totalTax = overallTotalTax.toFixed(2);
+sampleInvoice.totalAmount = overallTotalAmount.toFixed(2);
+
+const convertAmountToWords = (amount) => {
+  return numberToWords.toWords(amount).replace(/\b\w/g, (char) => char.toUpperCase()) + " Rupees Only";
 };
 
+sampleInvoice.totalAmountInWords = convertAmountToWords(Math.floor(overallTotalAmount));
 
 // Styles
 const styles = StyleSheet.create({
@@ -74,18 +136,6 @@ const buttonStyle = {
   border: "none",
   cursor: "pointer",
 };
-
-// PDF Document Component
-const MyDocument = ({ content }) => (
-  <Document>
-    <Page size="A4" style={styles.page}>
-      <View style={styles.section}>
-        <Text>Billing PDF</Text>
-        <Text>{content}</Text>
-      </View>
-    </Page>
-  </Document>
-);
 
 // Main Component
 const PDFEditor = () => {
